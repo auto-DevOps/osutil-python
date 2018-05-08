@@ -24,6 +24,7 @@ from libase.decorator.helper import (
 class System(object):
 
     OS_TYPE_LINUX = 'linux'
+    OS_TYPE_WINDOWS = 'windows'
 
     LSB_RELEASE_PATH = '/etc/lsb-release'
     DEBIAN_VERSION_PATH = '/etc/debian_version'
@@ -36,6 +37,7 @@ class System(object):
 
     distro = None
     distro_release = None
+    kernel_version = None
 
     def __init__(self):
         self._init(os_type=self.os_type)
@@ -94,6 +96,10 @@ class System(object):
     def is_linux(self):
         return self.os_type == self.OS_TYPE_LINUX
 
+    @property
+    def is_windows(self):
+        return self.os_type == self.OS_TYPE_WINDOWS
+
     def _init_uname(self):
         uname = os.uname()
 
@@ -108,6 +114,16 @@ class System(object):
 
     def _init_darwin(self):
         self._init_uname()
+
+    def _init_windows(self):
+        from wmi import WMI
+
+        wmi = WMI()
+        os, = wmi.Win32_OperatingSystem()
+
+        self.distro = os.Caption
+        self.distro_release = os.BuildNumber
+        self.kernel_version = os.Version
 
     def _init_fake(self):
         self
